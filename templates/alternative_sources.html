@@ -14,12 +14,16 @@
 			<a href="{{ url_for('index') }}" class="btn btn-default">Home</a>
 		</div>
 		<div class="container">
+			<h1>Alternative Sources</h1>
 			<hr>
-			<form class="form-inline" action="{{ url_for('alternative_sources', url=url) }}" method="post" enctype="multipart/form-data">
-				<div class="form-group">
-					<input type="submit" value="Get Alternative Sources" class="btn btn-default">
-				</div>
-			</form>
+			{% for id in range(sources_found) %}
+				<p>This is a {{ session["alt_classes"][id] }} article.</p>
+				<p>URL: {{ session["alt_urls"][id] }} </p>
+				<p>TITLE: {{ session["alt_titles"][id] }} </p>
+				<p>SOURCE: {{ session["alt_sources"][id] }} </p>
+			{% endfor %}
+			<h1>Alternative Summary</h1>
+			<p>SUMMARY: {{ session["alt_summary"] }} </p>
 		</div>
 	</body>
 </html>

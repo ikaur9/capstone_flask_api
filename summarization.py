@@ -1,33 +1,37 @@
-import numpy as np
-import pandas as pd
-import sklearn
-from random import sample
-import re
+#import numpy as np
+#import pandas as pd
+#import sklearn
+#from random import sample
+#import re
 
 # for summarization
 from transformers import TFXLNetForSequenceClassification, XLNetTokenizer, T5Tokenizer, TFT5ForConditionalGeneration, PegasusTokenizer, TFPegasusForConditionalGeneration
-import datetime
-import tensorflow as tf
-from newspaper import Article, Config
-from heapq import nlargest
+#import datetime
+#import tensorflow as tf
+#from newspaper import Article, Config
+#from heapq import nlargest
 #from GoogleNews import GoogleNews
-from googlesearch import search
-from bs4 import BeautifulSoup
-import requests
+#from googlesearch import search
+#from bs4 import BeautifulSoup
+#import requests
 
-from article_extraction import check_article
+#from article_extraction import check_article
 
 # for partial matching strings
-from fuzzywuzzy import fuzz
-from fuzzywuzzy import process
+#from fuzzywuzzy import fuzz
+#from fuzzywuzzy import process
 
 # for document similarity 
-from sklearn.feature_extraction.text import TfidfVectorizer
+#from sklearn.feature_extraction.text import TfidfVectorizer
 
 
 # pegasus model loaded
 pegasus_model = TFPegasusForConditionalGeneration.from_pretrained('google/pegasus-xsum')
 pegasus_tokenizer = PegasusTokenizer.from_pretrained('google/pegasus-xsum')
+
+# load t5 model for second level summarization
+t5_model = TFT5ForConditionalGeneration.from_pretrained('t5-large')
+t5_tokenizer = T5Tokenizer.from_pretrained('t5-large')
 
 
 def short_summary(text):
