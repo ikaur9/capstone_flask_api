@@ -1,32 +1,31 @@
 import numpy as np
 import pandas as pd
-import sklearn
+#import sklearn
 from random import sample
-import re
+#import re
 
 # for summarization
-from transformers import TFXLNetForSequenceClassification, XLNetTokenizer, T5Tokenizer, TFT5ForConditionalGeneration, PegasusTokenizer, TFPegasusForConditionalGeneration
-import datetime
-import tensorflow as tf
-from newspaper import Article, Config
-from heapq import nlargest
-#from GoogleNews import GoogleNews
+#from transformers import TFXLNetForSequenceClassification, XLNetTokenizer, T5Tokenizer, TFT5ForConditionalGeneration, PegasusTokenizer, TFPegasusForConditionalGeneration
+#import datetime
+#import tensorflow as tf
+#from newspaper import Article, Config
+#from heapq import nlargest
 from googlesearch import search
-from bs4 import BeautifulSoup
-import requests
+#from bs4 import BeautifulSoup
+#import requests
 
 from article_extraction import check_article
 from summarization import short_summary
 
 # for partial matching strings
-from fuzzywuzzy import fuzz
-from fuzzywuzzy import process
+from fuzzywuzzy import fuzz, process
+#from fuzzywuzzy import process
 
 # for document similarity 
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 # put the news sources and biases in a dataframe: data
-data = pd.read_csv('./bias_df.csv')
+bias_data = pd.read_csv('./data/bias_df.csv')
 
 def get_alternative_bias(article_bias_id):
     """
@@ -47,7 +46,7 @@ def get_alternative_bias(article_bias_id):
     return biases
 
 
-def get_alternative_urls(original_url, title, date, alternative_bias, bias_data):
+def get_alternative_urls(original_url, title, date, alternative_bias):
     """
     Gets the related alternative articles url links through google search
     
@@ -117,7 +116,7 @@ def url_to_info(urls, sources):
         
         
         # if there is less than 35 words in the article, it isn't included
-        if alt_text is not None and len(alt_text.split(' ')) < 35:
+        if alt_text is None or len(alt_text.split(' ')) < 35:
             continue
         else:
             #article_urls.append(alt_url)
@@ -159,7 +158,7 @@ def similar_documents(texts, titles, urls, sources):
     bool_similarity = avg_similarity > 0.53
     
     # get the list of articles that fulfill the requirement of .53 avg similarity
-    #if there are more than 4 articles that have greater than .53 similarities, only take the top 4 similarities 
+    # if there are more than 4 articles that have greater than .53 similarities, only take the top 4 similarities 
     if sum(bool_similarity) > 4:
         top_indexes = avg_similarity.argsort()[-4:][::-1]
         updated_texts = [texts[i] for i in top_indexes]
@@ -186,7 +185,7 @@ def alternate_bias_search(orig_url, orig_text, orig_date, orig_bias):
     
     # web seach for alternative bias articles
     alt_bias = get_alternative_bias(orig_bias)
-    alt_urls, alt_sources = get_alternative_urls(orig_url, search_summary, orig_date, alt_bias, bias_data)
+    alt_urls, alt_sources = get_alternative_urls(orig_url, search_summary, orig_date, alt_bias)
 
     # extract alternative article texts and titles
     alt_texts, alt_titles = url_to_info(alt_urls, alt_sources)
