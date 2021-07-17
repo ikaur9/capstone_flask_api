@@ -105,8 +105,8 @@ def url_to_info(urls, sources):
     """
     article_texts = []
     article_titles = []
-    #article_sources = []
-    #article_urls = []
+    article_urls = []
+    article_sources = []
     #urls, sources = zip(*zipped_urls_sources)
     for index in range(len(urls)):
         
@@ -114,15 +114,14 @@ def url_to_info(urls, sources):
         alt_source = sources[index]
         alt_text, alt_title, _ = check_article(alt_url)
         
-        
         # if there is less than 35 words in the article, it isn't included
         if alt_text is None or len(alt_text.split(' ')) < 35:
             continue
         else:
-            #article_urls.append(alt_url)
             article_texts.append(alt_text)
             article_titles.append(alt_title)
-            #article_sources.append(alt_source)
+            article_urls.append(alt_url)
+            article_sources.append(alt_source)
         
 #         try:
 #             article = Article(urls[index])
@@ -137,7 +136,7 @@ def url_to_info(urls, sources):
 #             continue
 
     #zipped_articles = list(zip(article_texts, article_titles, article_sources, article_urls))
-    return article_texts, article_titles
+    return article_texts, article_titles, article_urls, article_sources
 
 def similar_documents(texts, titles, urls, sources):
     """"
@@ -185,10 +184,10 @@ def alternate_bias_search(orig_url, orig_text, orig_date, orig_bias):
     
     # web seach for alternative bias articles
     alt_bias = get_alternative_bias(orig_bias)
-    alt_urls, alt_sources = get_alternative_urls(orig_url, search_summary, orig_date, alt_bias)
+    urls, sources = get_alternative_urls(orig_url, search_summary, orig_date, alt_bias)
 
     # extract alternative article texts and titles
-    alt_texts, alt_titles = url_to_info(alt_urls, alt_sources)
+    alt_texts, alt_titles, alt_urls, alt_sources = url_to_info(urls, sources)
     
     # only keep relevant articles
     updated_texts, updated_titles, updated_urls, updated_sources = similar_documents(alt_texts, alt_titles, alt_urls, alt_sources)

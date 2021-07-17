@@ -71,7 +71,7 @@ def predict():
         predicted_class, scores, all_probs, least_expected = classify_sample(preprocessed_text, classifiers, subclassifiers, vectorizer, tfidfconverter)
         
         # WEB SEARCH FOR ALTERNATE BIAS
-        updated_texts, updated_titles, updated_urls, updated_sources = alternate_bias_search(uploaded_url, raw_text, date, predicted_class)
+        alt_texts, alt_titles, alt_urls, alt_sources = alternate_bias_search(uploaded_url, raw_text, date, predicted_class)
         
         alt_classifications = []
         for alt_txt in alt_texts:
@@ -83,7 +83,7 @@ def predict():
             alt_classifications.append((predicted_alt_class, alt_scores, all_alt_probs, alt_least_expected))
         
         # ALTERNATE BIAS SUMMARY
-        alt_summary = alternate_bias_summary(updated_texts)
+        alt_summary = alternate_bias_summary(alt_texts)
 
         return render_template("predict.html", predicted_class=predicted_class, url=uploaded_url, title=title, date=date, text=raw_text)
 
@@ -95,7 +95,7 @@ def alternative_sources():
 
     try:
         # WEB SEARCH FOR ALTERNATE BIAS
-        updated_texts, updated_titles, updated_urls, updated_sources = alternate_bias_search(uploaded_url, raw_text, date, predicted_class)
+        alt_texts, alt_titles, alt_urls, alt_sources = alternate_bias_search(uploaded_url, raw_text, date, predicted_class)
         
         alt_classifications = []
         for alt_txt in alt_texts:
@@ -107,7 +107,7 @@ def alternative_sources():
             alt_classifications.append((predicted_alt_class, alt_scores, all_alt_probs, alt_least_expected))
         
         # ALTERNATE BIAS SUMMARY
-        alt_summary = alternate_bias_summary(updated_texts)
+        alt_summary = alternate_bias_summary(alt_texts)
 
         return render_template("predict.html", predicted_class=predicted_class, url=uploaded_url, title=title, date=date, text=raw_text)
 
