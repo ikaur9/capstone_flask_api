@@ -1,7 +1,7 @@
 import time
 import traceback
 
-from flask import Flask, request, jsonify, render_template, session
+from flask import Flask, request, jsonify, render_template, session, redirect, url_for
 
 from article_extraction import check_article
 from text_classification import classify
@@ -12,15 +12,23 @@ app = Flask(__name__)
 app.secret_key = b'\xc4N\xcbk`k\xf88\na\x0c\xbf1\xd1\xf2\xe5'
 
 
-@app.route('/', methods=['GET'])
+@app.route('/', methods=["GET", "POST"])
 def index():
+    if request.method == "POST":
+        url = request.form.get("text")
+        session["url"] = url
+        return redirect(url_for("predict", url=url))
     return render_template("index.html")
 
 
-@app.route('/predict', methods=['POST'])
+@app.route('/predict', methods=["GET", "POST"])
 def predict():
-    url = request.form.get("text")
-    session["url"] = url
+    
+    url = session.get("url", None)
+    
+    if request.method == "POST":
+        return redirect(url_for("alternative_sources", url=url))
+    
     try:
         # EXTRACT ARTICLE TEXT
         text, title, date = check_article(url)
@@ -41,7 +49,7 @@ def predict():
     except Exception as e:
         return jsonify({'error': str(e), 'trace': traceback.format_exc()})
 
-@app.route('/alternative-sources', methods=['POST'])
+@app.route('/alternative-sources', methods=["GET"])
 def alternative_sources():
 
     url = session.get("url", None)
@@ -63,7 +71,7 @@ def alternative_sources():
         alt_classes = []
         
         for alt_txt in alt_texts:
-            predicted_alt_class, scores, all_probs, least_expected = classify_sample(alt_txt)
+            predicted_alt_class, scores, all_probs, least_expected = classify(alt_txt)
             alt_classes.append(int(predicted_alt_class))
         
         session["alt_classes"] = alt_classes

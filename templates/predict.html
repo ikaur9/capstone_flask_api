@@ -15,7 +15,7 @@
 		</div>
 		<div class="container">
 			<hr>
-			<form class="form-inline" action="{{ url_for('alternative_sources', url=url) }}" method="post" enctype="multipart/form-data">
+			<form class="form-inline" action="{{ url_for('predict', url=url) }}" method="post" enctype="multipart/form-data">
 				<div class="form-group">
 					<input type="submit" value="Get Alternative Sources" class="btn btn-default">
 				</div>
