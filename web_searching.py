@@ -1,25 +1,13 @@
 import numpy as np
 import pandas as pd
-#import sklearn
 from random import sample
-#import re
-
-# for summarization
-#from transformers import TFXLNetForSequenceClassification, XLNetTokenizer, T5Tokenizer, TFT5ForConditionalGeneration, PegasusTokenizer, TFPegasusForConditionalGeneration
-#import datetime
-#import tensorflow as tf
-#from newspaper import Article, Config
-#from heapq import nlargest
 from googlesearch import search
-#from bs4 import BeautifulSoup
-#import requests
 
 from article_extraction import check_article
 from summarization import short_summary
 
 # for partial matching strings
 from fuzzywuzzy import fuzz, process
-#from fuzzywuzzy import process
 
 # for document similarity 
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -29,11 +17,11 @@ bias_data = pd.read_csv('./data/bias_df.csv')
 
 def get_alternative_bias(article_bias_id):
     """
-    Gets the other biases from the article bias 
-    eg. get_opposite_bias('right') returns ['left', 'center']
+    Get the alternate biases from the given article bias 
+    eg. get_opposite_bias(2) returns ['left', 'center']
     
-    input: string, the bias of the article - options: left, center, right
-    output: list, of the alternative biases       
+    input: int, bias of given article (0: center, 1: left, 2: right)
+    output: list of strings, alternative biases       
     """
     biases = ['left', 'center', 'right']
     article_bias = biases[article_bias_id]
@@ -48,15 +36,14 @@ def get_alternative_bias(article_bias_id):
 
 def get_alternative_urls(original_url, title, date, alternative_bias):
     """
-    Gets the related alternative articles url links through google search
+    Gets the related alternative articles url links through Google search
     
     input: original_url - string, url of the article that we are trying to get alternative articles for
-           title - string, short summary of article,
-           date - string, month and year,
-           alternative_bias - list of strings, the alternative sides of bias of the article,
-           bias_data - dataframe - 2 columns, the source and the bias
-    output: list of tuples, first element of the tuple is the url of the alternative bias covering the same topic
-                            second element of the tuple is the source name
+           title - string, short summary of article
+           date - string, month and year
+           alternative_bias - list of strings, alternative biases
+    output: articles - list of strings, alternate bias article URLS
+            sources - list of strings, alternate bias article source names
    """
     # using the googlesearch API      
     articles = []
@@ -93,7 +80,7 @@ def get_alternative_urls(original_url, title, date, alternative_bias):
             else:
                 articles.append(article_url)
                 sources.append(source)
-    #zipped_list = list(zip(articles, sources))
+
     return articles, sources
 
 def url_to_info(urls, sources):
@@ -107,7 +94,7 @@ def url_to_info(urls, sources):
     article_titles = []
     article_urls = []
     article_sources = []
-    #urls, sources = zip(*zipped_urls_sources)
+
     for index in range(len(urls)):
         
         alt_url = urls[index]
@@ -122,20 +109,7 @@ def url_to_info(urls, sources):
             article_titles.append(alt_title)
             article_urls.append(alt_url)
             article_sources.append(alt_source)
-        
-#         try:
-#             article = Article(urls[index])
-#             article.download()
-#             article.parse()
-#             txt = article.text
-#             article.nlp()
-#             # if there is no text in the article it isn't included
-#             if txt:
-        
-#         except:
-#             continue
 
-    #zipped_articles = list(zip(article_texts, article_titles, article_sources, article_urls))
     return article_texts, article_titles, article_urls, article_sources
 
 def similar_documents(texts, titles, urls, sources):
@@ -173,7 +147,7 @@ def similar_documents(texts, titles, urls, sources):
         updated_titles = list(np.array(titles)[bool_similarity])
         updated_sources = list(np.array(sources)[bool_similarity])
         updated_urls = list(np.array(urls)[bool_similarity])
-    #zipped_similar = list(zip(updated_texts, updated_titles, updated_sources, updated_urls))
+
     return updated_texts, updated_titles, updated_urls, updated_sources
 
 

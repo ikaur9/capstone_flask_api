@@ -8,7 +8,6 @@ from nltk import download
 download('stopwords')
 download('punkt')
 
-
 # tf-idf from https://stackabuse.com/text-classification-with-python-and-scikit-learn/
 # tf-idf processing from https://github.com/williamscott701/Information-Retrieval/blob/master/2.%20TF-IDF%20Ranking%20-%20Cosine%20Similarity%2C%20Matching%20Score/TF-IDF.ipynb
 

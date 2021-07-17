@@ -1,4 +1,40 @@
-def classify_sample(preprocessed_text, classifierlist, subclassifier_list, vectorizer, tfidfconverter):
+from joblib import load
+from text_preprocessing import preprocess
+
+
+# load the classification models from the model directory
+model_directory = './TFIDF'
+
+try:  
+    print('Loading 1 vs All models...')
+    centerclassifier = load('%s/centerclassifierarticle.pickle' % model_directory)
+    leftclassifier = load('%s/leftclassifierarticle.pickle' % model_directory)
+    rightclassifier = load('%s/rightclassifierarticle.pickle' % model_directory)
+
+    print('Loading 1 vs 1 models...')
+    leftcenterclassifier = load('%s/leftcenterclassifier.pickle' % model_directory)
+    leftrightclassifier = load('%s/leftrightclassifier.pickle' % model_directory)
+    rightcenterclassifier = load('%s/rightcenterclassifier.pickle' % model_directory)
+    print('Models loaded.')
+
+    classifiers = [centerclassifier, leftclassifier, rightclassifier]
+    subclassifiers = [leftrightclassifier, rightcenterclassifier, leftcenterclassifier]
+
+    print('Loading vectorizer...')
+    vectorizer = load('%s/vectorizer.pickle' % model_directory)
+    print('Vectorizer loaded.')
+
+    print('Loading converter...')
+    tfidfconverter = load('%s/tfidfconverter.pickle' % model_directory)
+    print('Converter loaded.')
+    
+except Exception as e:
+    print('Failed to load models with exception:')
+    print(str(e))
+    classifiers, subclassifiers, vectorizer, tfidfconverter = None, None, None, None
+
+
+def classify_preprocessed(preprocessed_text, classifierlist, subclassifier_list, vectorizer, tfidfconverter):
     
     vect = vectorizer.transform([preprocessed_text]).toarray()
     tfidfmatrix = tfidfconverter.transform(vect).toarray()
@@ -27,6 +63,15 @@ def classify_sample(preprocessed_text, classifierlist, subclassifier_list, vecto
     
     print("edge case")
     return labelprobs
+
+def classify(text):
+    # ARTICLE TEXT PROCESSING
+    preprocessed_text = preprocess(text)
+
+    # ARTICLE TEXT CLASSIFICATION
+    predicted_class, scores, all_probs, least_expected = classify_preprocessed(preprocessed_text, classifiers, subclassifiers, vectorizer, tfidfconverter)
+    
+    return predicted_class, scores, all_probs, least_expected
 
 
 if __name__ == '__main__':
