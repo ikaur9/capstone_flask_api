@@ -59,7 +59,7 @@ def alternative_sources():
           
     try:
         # WEB SEARCH FOR ALTERNATE BIAS
-        alt_texts, alt_titles, alt_urls, alt_sources = alternate_bias_search(url, text, date, predicted_class)
+        alt_texts, alt_titles, alt_urls, alt_sources, alt_biases = alternate_bias_search(url, text, date, predicted_class)
         
         sources_found = len(alt_texts)
         
@@ -85,12 +85,6 @@ def alternative_sources():
 
     except Exception as e:
         return jsonify({'error': str(e), 'trace': traceback.format_exc()})
-
-
-#     start = time.time()
-#     message1 = 'Trained in %.5f seconds' % (time.time() - start)
-#     message2 = 'Model training score: %s' % clf.score(x, y)
-#     return_message = 'Success. \n{0}. \n{1}.'.format(message1, message2)
 
 
 if __name__ == '__main__':
