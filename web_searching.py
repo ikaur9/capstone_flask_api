@@ -128,11 +128,6 @@ def get_alternative_urls(original_url, summary, date, source_bias, source_name):
         articles.append(article_url)
         sources.append(source_name)
         biases.append(source_bias)
-
-        
-
-    #if len(articles) == 0:
-        #raise ValueError('No alternative articles found')
         
     return articles, sources, biases
 
@@ -273,6 +268,9 @@ def alternate_bias_search(orig_url, orig_text, orig_date, orig_bias):
         print(u)
         print(s)
         print(b)
+        
+    if len(urls) == 0:
+        raise ValueError('No alternative articles found')
     
     tic_3 = time.perf_counter()
     print(f"Got the alternative URLs in {tic_3 - tic_2:0.4f} seconds")
