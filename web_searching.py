@@ -1,10 +1,11 @@
+import time
 import numpy as np
 import pandas as pd
 from random import sample
 from googlesearch import search
 
 from article_extraction import check_article
-from summarization import short_summary
+from summarization import short_gensim_summary, short_pegasus_summary
 
 # for partial matching strings
 from fuzzywuzzy import fuzz, process
@@ -21,7 +22,8 @@ def get_alternative_bias(article_bias_id):
     eg. get_opposite_bias(2) returns ['left', 'center']
     
     input: int, bias of given article (0: center, 1: left, 2: right)
-    output: list of strings, alternative biases       
+    output: list of strings, alternative biases
+    
     """
     biases = ['center', 'left', 'right']
     article_bias = biases[article_bias_id]
@@ -34,15 +36,41 @@ def get_alternative_bias(article_bias_id):
         
     return biases
 
+def sample_alternative_bias_sources(biases, num_sources=5):
+    """
+    Get the alternate bias sources for each alternate biases. 
+    
+    input: list of strings, alternate biases
+    output: list of strings, alternative biases sources
+    
+    """
+    sources = []
+    source_biases = []
+    biases.sort()
+    
+    # search for articles from alternative bias sources
+    for bias in biases:
+        # sample num_sources alternative sources to search for
+        source_list = bias_data[bias_data.bias == bias].source.tolist()
+        sample_sources = sample(source_list, num_sources)
+        
+        # return the name and bias of each source to query from
+        sources.extend(sample_sources)
+        source_biases.extend([bias] * num_sources)
+        
+    return sources, source_biases
 
-def get_alternative_urls(original_url, title, date, alternative_bias):
+
+def get_alternative_urls(original_url, summary, date, source_bias, source_name):
     """
     Get the related alternative article urls and sources through Google search.
+    Search for a particular source name and source bias.
     
     input: original_url - string, url of the article that we are trying to get alternative articles for
-           title - string, short summary of article
+           summary - string, short summary of article
            date - string, month and year
-           alternative_bias - list of strings, alternative biases
+           source_bias - string, the alternate bias that we are looking for
+           source_name - string, alternative source to query
     output: articles - list of strings, alternate bias article URLS
             sources - list of strings, alternate bias article source names
             biases - list of strings, alternate article biases
@@ -52,66 +80,59 @@ def get_alternative_urls(original_url, title, date, alternative_bias):
     articles = []
     sources = []
     biases = []
-    alternative_bias.sort()
-    
-    # search for articles from alternative bias sources
-    for bias in alternative_bias:
-        
-        # sample 5 alternative sources to search for
-        source_list = bias_data[bias_data.bias == bias].source.tolist()
-        sample_sources = sample(source_list, 5)
-        
-        for source in sample_sources:
-            
-            # create Google search query
-            query_list = [title, 'article', date, source]
-            source_url = bias_data[bias_data.source == source].website.iloc[0]
-            query = ' '.join(query_list)
-            
-            # run Google search and get first result
-            search_generator = search(query, num = 2, pause = 3)
-            article_url = next(search_generator)
-            
-            # skip first result if already found or same as the original article
-            if article_url in articles or fuzz.partial_ratio(original_url, article_url) > 80:
-                article_url2 = next(search_generator)
-                
-                # skip second result if already found or same as the original article
-                if article_url2 in articles or fuzz.partial_ratio(original_url, article_url2) > 80:
-                    continue
-                    
-                # keep result if it's from the target source
-                elif fuzz.partial_ratio(source_url, article_url2) > 80:
-                    articles.append(article_url2)
-                    sources.append(source)
-                    biases.append(bias)
-                    
-            elif source_url not in article_url:
-                if fuzz.partial_ratio(source_url, article_url) > 80:
-                    articles.append(article_url)
-                    sources.append(source)
-                    biases.append(bias)
-                else:
-                    article_url2 = next(search_generator)
-                    
-                    # skip second result if already found or same as the original article
-                    if article_url2 in articles or fuzz.partial_ratio(original_url, article_url2) > 80:
-                        continue
-                    
-                    # keep result if it's from the target source
-                    elif fuzz.partial_ratio(source_url, article_url2) > 80:
-                        articles.append(article_url2)
-                        sources.append(source)
-                        biases.append(bias)
-                    else:
-                        continue
-            else:
-                articles.append(article_url)
-                sources.append(source)
-                biases.append(bias)
+         
+    # create Google search query
+    query_list = [summary, 'article', date, source_name]
+    source_url = bias_data[bias_data.source == source_name].website.iloc[0]
+    query = ' '.join(query_list)
 
-    if len(articles) == 0:
-        raise ValueError('No alternative articles found')
+    # run Google search and get first result
+    search_generator = search(query, num = 2, pause = 3)
+    article_url = next(search_generator)
+
+    # skip first result if already found or same as the original article
+    if article_url in articles or fuzz.partial_ratio(original_url, article_url) > 80:
+        article_url2 = next(search_generator)
+
+        # skip second result if already found or same as the original article
+        if article_url2 in articles or fuzz.partial_ratio(original_url, article_url2) > 80:
+            return articles, sources, biases
+
+        # keep result if it's from the target source
+        elif fuzz.partial_ratio(source_url, article_url2) > 80:
+            articles.append(article_url2)
+            sources.append(source_name)
+            biases.append(source_bias)
+
+    elif source_url not in article_url:
+        # keep result if it's from the target source
+        if fuzz.partial_ratio(source_url, article_url) > 80:
+            articles.append(article_url)
+            sources.append(source_name)
+            biases.append(source_bias)
+        else:
+            article_url2 = next(search_generator)
+
+            # skip second result if already found or same as the original article
+            if article_url2 in articles or fuzz.partial_ratio(original_url, article_url2) > 80:
+                return articles, sources, biases
+
+            # keep result if it's from the target source
+            elif fuzz.partial_ratio(source_url, article_url2) > 80:
+                articles.append(article_url2)
+                sources.append(source_name)
+                biases.append(source_bias)
+            else:
+                return articles, sources, biases
+    else:
+        articles.append(article_url)
+        sources.append(source_name)
+        biases.append(source_bias)
+
+        
+
+    #if len(articles) == 0:
+        #raise ValueError('No alternative articles found')
         
     return articles, sources, biases
 
@@ -219,19 +240,56 @@ def similar_documents(texts, titles, urls, sources, biases):
 
 
 def alternate_bias_search(orig_url, orig_text, orig_date, orig_bias):
-
+    
+    tic_0 = time.perf_counter()
+    
     # summarize original article for web search
-    search_summary = short_summary(orig_text)
+    search_gensim_summary = short_gensim_summary(orig_text)
+    search_pegasus_summary = short_pegasus_summary(search_gensim_summary)
+    
+    tic_1 = time.perf_counter()
+    print(f"Got the short summary in {tic_1 - tic_0:0.4f} seconds")
     
     # web seach for alternative bias articles
     alt_bias = get_alternative_bias(orig_bias)
-    urls, sources, biases = get_alternative_urls(orig_url, search_summary, orig_date, alt_bias)
+    
+    alt_sources, alt_source_biases = sample_alternative_bias_sources(alt_bias)
+    print(alt_sources)
+    print(alt_source_biases)
+    
+    tic_2 = time.perf_counter()
+    print(f"Got the sample sources in {tic_2 - tic_1:0.4f} seconds")
+    
+    urls = []
+    sources = []
+    biases = []
+    for idx in range(len(alt_sources)):
+        source = alt_sources[idx]
+        source_bias = alt_source_biases[idx]
+        u, s, b = get_alternative_urls(orig_url, search_pegasus_summary, orig_date, source_bias, source)
+        urls.extend(u)
+        sources.extend(s)
+        biases.extend(b)
+        print(u)
+        print(s)
+        print(b)
+    
+    tic_3 = time.perf_counter()
+    print(f"Got the alternative URLs in {tic_3 - tic_2:0.4f} seconds")
 
     # extract alternative article texts and titles
     alt_texts, alt_titles, alt_urls, alt_sources, alt_biases = url_to_info(urls, sources, biases)
     
+    tic_4 = time.perf_counter()
+    print(f"Got the alternative texts in {tic_4 - tic_3:0.4f} seconds")
+    
     # only keep relevant articles
     updated_texts, updated_titles, updated_urls, updated_sources, updated_bias = similar_documents(alt_texts, alt_titles, alt_urls, alt_sources, alt_biases)
+    
+    tic_5 = time.perf_counter()
+    print(f"Got the similar docs in {tic_5 - tic_4:0.4f} seconds")
+    
+    print(f"Got the alternate bias search total in {tic_5 - tic_0:0.4f} seconds")
     
     return updated_texts, updated_titles, updated_urls, updated_sources, updated_bias
 
