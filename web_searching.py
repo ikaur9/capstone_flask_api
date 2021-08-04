@@ -36,7 +36,7 @@ def get_alternative_bias(article_bias_id):
         
     return biases
 
-def sample_alternative_bias_sources(biases, num_sources=5):
+def sample_alternative_bias_sources(biases, num_sources=4):
     """
     Get the alternate bias sources for each alternate biases. 
     
@@ -209,7 +209,7 @@ def similar_documents(texts, titles, urls, sources, biases):
     # keep documents with >.53 average similarity to make sure documents are about the same topic
     # (.53 is an arbitrary threshold)
     avg_similarity = np.average(pairwise_similarity.toarray(), axis = 1)
-    bool_similarity = avg_similarity > 0.53
+    bool_similarity = avg_similarity > 0.51
 
     #if there are more than 4 articles >.53 similarity, take the top 4  
     if sum(bool_similarity) > 4:
@@ -221,7 +221,7 @@ def similar_documents(texts, titles, urls, sources, biases):
         updated_bias = list_comprehension_indexed(biases, top_indexes)
     
     # error if there are less than 2 articles that have a collective similarity score >.53
-    elif sum(bool_similarity) <=1: 
+    elif sum(bool_similarity) <= 1: 
         raise ValueError('No similar articles found')
         
     else:
@@ -234,13 +234,13 @@ def similar_documents(texts, titles, urls, sources, biases):
     return updated_texts, updated_titles, updated_urls, updated_sources, updated_bias
 
 
-def alternate_bias_search(orig_url, orig_text, orig_date, orig_bias):
+def alternate_bias_search(orig_url, orig_text, orig_title, orig_date, orig_bias):
     
     tic_0 = time.perf_counter()
     
     # summarize original article for web search
     search_gensim_summary = short_gensim_summary(orig_text)
-    search_pegasus_summary = short_pegasus_summary(search_gensim_summary)
+    # search_pegasus_summary = short_pegasus_summary(search_gensim_summary)
     
     tic_1 = time.perf_counter()
     print(f"Got the short summary in {tic_1 - tic_0:0.4f} seconds")
@@ -261,7 +261,7 @@ def alternate_bias_search(orig_url, orig_text, orig_date, orig_bias):
     for idx in range(len(alt_sources)):
         source = alt_sources[idx]
         source_bias = alt_source_biases[idx]
-        u, s, b = get_alternative_urls(orig_url, search_pegasus_summary, orig_date, source_bias, source)
+        u, s, b = get_alternative_urls(orig_url, orig_title, orig_date, source_bias, source)
         urls.extend(u)
         sources.extend(s)
         biases.extend(b)

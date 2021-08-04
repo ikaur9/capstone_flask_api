@@ -1,11 +1,11 @@
 # import statements
 import time
 from gensim.summarization.summarizer import summarize
-from transformers import PegasusTokenizer, TFPegasusForConditionalGeneration
+# from transformers import PegasusTokenizer, TFPegasusForConditionalGeneration
 
 # load Pegasus model
-pegasus_model = TFPegasusForConditionalGeneration.from_pretrained('google/pegasus-xsum')
-pegasus_tokenizer = PegasusTokenizer.from_pretrained('google/pegasus-xsum')
+# pegasus_model = TFPegasusForConditionalGeneration.from_pretrained('google/pegasus-xsum')
+# pegasus_tokenizer = PegasusTokenizer.from_pretrained('google/pegasus-xsum')
 
 
 def short_gensim_summary(text):
@@ -24,7 +24,7 @@ def short_gensim_summary(text):
             raise ValueError('Not enough text in document')
             
         tic = time.perf_counter()
-        gensim_summary = summarize(text)
+        gensim_summary = summarize(text, ratio=0.1)
         
         tic_1 = time.perf_counter()
         print(f"Got the gensim short summary in {tic_1 - tic_0:0.4f} seconds")
