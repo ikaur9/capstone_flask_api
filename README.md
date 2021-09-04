@@ -5,7 +5,7 @@
 
 *5th Year MIDS, Summer 2021 Capstone Project*
 
-The PBnJ Chrome Extension scores the political bias of online news articles and summarizes related articles across the political spectrum. This Flask app demonstrates the data pipeline that connects the web scraping, web searching, classification, and summarization components of the PBnJ Chrome Extension. 
+The PBnJ Chrome Extension scores the political bias of online news articles and summarizes related articles across the political spectrum. This Flask app demonstrates the data pipeline that connects the web scraping, web searching, classification, and summarization components of the Extension. 
 
 ## Instructions for Use
 
