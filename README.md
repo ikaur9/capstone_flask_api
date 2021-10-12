@@ -1,6 +1,6 @@
 # PBnJ Flask API
 
-*Flask API for the [Political Bias in Journalism Chrome Extension](https://thepbnjproject.wixsite.com)*
+*Flask API for the [Political Bias in Journalism Chrome Extension](https://thepbnjproject.wixsite.com/home)*
 
 *5th Year MIDS, Summer 2021 Capstone Project*
 
